@@ -70,3 +70,7 @@ def conduct_research(file_path):
 if __name__ == "__main__":
     PATH = "C:/Users/Elizabeth/Downloads/mvswantedperson_photo_297.json"
     conduct_research(PATH)
+
+
+
+# this is for CI full rerun 
