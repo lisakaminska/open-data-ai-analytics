@@ -1,0 +1,77 @@
+name: CI Modules Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      module:
+        description: "Оберіть модуль (або all)"
+        required: true
+        default: "all"
+        type: choice
+        options: [all, data_load, data_quality, data_research, visualization]
+
+jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      # Які модулі змінилися
+      data_load: ${{ steps.filter.outputs.data_load }}
+      data_quality: ${{ steps.filter.outputs.data_quality }}
+      data_research: ${{ steps.filter.outputs.data_research }}
+      visualization: ${{ steps.filter.outputs.visualization }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            data_load: 'src/data_load.py'
+            data_quality: 'src/data_quality.py'
+            data_research: 'src/data_research.py'
+            visualization: 'src/visualization.py'
+
+  run-analytics:
+    needs: check-changes
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module: [data_load, data_quality, data_research, visualization]
+    
+    # Умова: запускати якщо (це push/PR ТА файл змінився) АБО (це ручний запуск для цього модуля)
+    if: >
+      (github.event_name != 'workflow_dispatch' && needs.check-changes.outputs[matrix.module] == 'true') ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.module == 'all' || github.event.inputs.module == matrix.module))
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run Module
+        run: |
+          mkdir -p artifacts/${{ matrix.module }}
+          echo "Executing ${{ matrix.module }}..."
+          # Запуск модуля та збереження логу в папку артефактів
+          python src/${{ matrix.module }}.py > artifacts/${{ matrix.module }}/run.log 2>&1
+
+      - name: Upload Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: report-${{ matrix.module }}
+          path: artifacts/${{ matrix.module }}/
