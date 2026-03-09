@@ -1,0 +1,16 @@
+name: Local Runner Pipeline
+
+on:
+  workflow_dispatch: # Дозволяє запускати вручну кнопкою
+
+jobs:
+  run-locally:
+    runs-on: self-hosted  # Це вказує GitHub шукати комп'ютер
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Analysis on My PC
+        run: |
+          # Запускаємо твій скрипт
+          python src/data_research.py
