@@ -25,40 +25,50 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Потрібно для порівняння змін файлів
 
-      # Перевіряємо умову запуску всередині кроку
-      - name: Should run?
-        id: check_run
+      - name: Check for changes (Bonus Logic)
+        id: check_changes
         run: |
-          if [[ "${{ github.event_name }}" != "workflow_dispatch" ]] || \
-             [[ "${{ github.event.inputs.module }}" == "all" ]] || \
-             [[ "${{ github.event.inputs.module }}" == "${{ matrix.module }}" ]]; then
-            echo "run=true" >> $GITHUB_OUTPUT
+          # Якщо це ручний запуск
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            if [[ "${{ github.event.inputs.module }}" == "all" || "${{ github.event.inputs.module }}" == "${{ matrix.module }}" ]]; then
+              echo "run=true" >> $GITHUB_OUTPUT
+            else
+              echo "run=false" >> $GITHUB_OUTPUT
+            fi
+          # Якщо це push або pull_request — перевіряємо, чи змінився файл модуля
           else
-            echo "run=false" >> $GITHUB_OUTPUT
+            # Порівнюємо поточний коміт з попереднім. Якщо файл змінився — run=true
+            if git diff --name-only HEAD^ HEAD | grep -q "src/${{ matrix.module }}.py"; then
+              echo "run=true" >> $GITHUB_OUTPUT
+            else
+              # Якщо змін немає, але це перший запуск або системний файл — теж можна запустити (опціонально)
+              echo "run=false" >> $GITHUB_OUTPUT
+            fi
           fi
 
       - name: Set up Python
-        if: steps.check_run.outputs.run == 'true'
+        if: steps.check_changes.outputs.run == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
       - name: Install dependencies
-        if: steps.check_run.outputs.run == 'true'
+        if: steps.check_changes.outputs.run == 'true'
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Run Module
-        if: steps.check_run.outputs.run == 'true'
+        if: steps.check_changes.outputs.run == 'true'
         run: |
           mkdir -p artifacts/${{ matrix.module }}
-          # Запускаємо файл
-          python src/${{ matrix.module }}.py > artifacts/${{ matrix.module }}/run.log 2>&1 || echo "Module execution issue"
+          python src/${{ matrix.module }}.py > artifacts/${{ matrix.module }}/run.log 2>&1 || echo "Issue in module"
 
       - name: Upload Results
-        if: always() && steps.check_run.outputs.run == 'true'
+        if: always() && steps.check_changes.outputs.run == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: report-${{ matrix.module }}
