@@ -5,12 +5,20 @@ import seaborn as sns
 from PIL import Image
 import base64
 import io
+import os
 
 def create_advanced_visualizations(file_path):
+    # Створюємо необхідні папки, якщо їх ще немає
+    os.makedirs("reports/figures", exist_ok=True)
+    
+    print(f"Починаю аналіз файлу: {file_path}")
+
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
         df = pd.DataFrame(data)
+        
+        print(f"Завантажено {len(df)} записів. Починаю обробку зображень...")
 
         def get_img_metrics(b64):
             try:
@@ -18,18 +26,22 @@ def create_advanced_visualizations(file_path):
                 img = Image.open(io.BytesIO(img_data))
                 w, h = img.size
                 return w, h, w / h
-            except:
+            except Exception:
                 return None, None, None
 
-        df[['width', 'height', 'aspect_ratio']] = pd.DataFrame(
-            df['PHOTOIDBASE64ENCODE'].apply(get_img_metrics).tolist(), index=df.index
-        )
+        # Аналіз метрик зображень
+        metrics = df['PHOTOIDBASE64ENCODE'].apply(get_img_metrics).tolist()
+        df[['width', 'height', 'aspect_ratio']] = pd.DataFrame(metrics, index=df.index)
+        
+        # Розрахунок ваги файлу в КБ
         df['size_kb'] = df['PHOTOIDBASE64ENCODE'].str.len() * 0.75 / 1024
 
+        # Визначення формату за заголовком Base64
         df['format'] = df['PHOTOIDBASE64ENCODE'].apply(
-            lambda x: 'PNG' if 'iVBORw' in x[:10] else ('JPEG' if '/9j/' in x[:10] else 'Other')
+            lambda x: 'PNG' if str(x).startswith('iVBORw') else ('JPEG' if str(x).startswith('/9j/') else 'Other')
         )
 
+        # Побудова графіків
         fig, axes = plt.subplots(2, 2, figsize=(16, 12))
         plt.subplots_adjust(hspace=0.3)
 
@@ -39,31 +51,30 @@ def create_advanced_visualizations(file_path):
         axes[0, 0].axvline(0.75, color='red', linestyle='--', label='Портрет 3:4')
         axes[0, 0].legend()
 
-        # 2: Співвідношення Ширини та Висоти
+        # 2: Розподіл роздільної здатності
         sns.scatterplot(data=df, x='width', y='height', hue='format', alpha=0.5, ax=axes[0, 1])
         axes[0, 1].set_title('Розподіл роздільної здатності (Width vs Height)')
 
-        # 3: Вага файлу в залежності від формату
-        # Показує аномально важкі файли
+        # 3: Вага файлів за форматами
         sns.boxplot(data=df, x='format', y='size_kb', ax=axes[1, 0], palette='Set2')
-        axes[1, 0].set_yscale('log')  # Логарифмічна шкала, бо є дуже великі файли
+        axes[1, 0].set_yscale('log')
         axes[1, 0].set_title('Вага файлів за форматами (Log scale)')
 
-        # 4: Top 10 IDs за вагою
+        # 4: Топ-10 за розміром
         top10 = df.nlargest(10, 'size_kb')
         sns.barplot(data=top10, x='size_kb', y='ID', ax=axes[1, 1], palette='Reds_r')
-        axes[1, 1].set_title('Топ-10 найбільш деталізованих фото (за ID)')
+        axes[1, 1].set_title('Топ-10 найбільших фото за ID')
 
         output_path = "reports/figures/advanced_analytics.png"
         plt.savefig(output_path)
-        plt.show()
+        plt.close() # Важливо: закриваємо графік, щоб не висіло вікно
+        
+        print(f"Успіх! Візуалізацію збережено у: {output_path}")
 
     except Exception as e:
-        print(f"Помилка: {e}")
-
+        print(f"Помилка при виконанні аналізу: {e}")
 
 if __name__ == "__main__":
-    create_advanced_visualizations("C:\\Users\\Elizabeth\\Downloads\\mvswantedperson_photo_297.json")
-
-
-# this is for CI full rerun)
+    # Використовуємо r"" для коректної обробки шляхів Windows
+    DATA_PATH = r"C:\Users\Elizabeth\Downloads\mvswantedperson_photo_297.json"
+    create_advanced_visualizations(DATA_PATH)
