@@ -63,4 +63,7 @@ def create_advanced_visualizations(file_path):
 
 
 if __name__ == "__main__":
-    create_advanced_visualizations("C:/Users/Elizabeth/Downloads/mvswantedperson_photo_297.json")
+    create_advanced_visualizations("C:\\Users\\Elizabeth\\Downloads\\mvswantedperson_photo_297.json")
+
+
+# this is for CI full rerun)

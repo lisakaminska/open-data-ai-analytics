@@ -37,4 +37,6 @@ def run_quality_check(file_path):
         print(f"Помилка при аналізі: {e}")
 
 if __name__ == "__main__":
-    run_quality_check("C:/Users/Elizabeth/Downloads/mvswantedperson_photo_297.json")
+    run_quality_check("C:\\Users\\Elizabeth\\Downloads\\mvswantedperson_photo_297.json")
+
+# this is for CI full rerun)
