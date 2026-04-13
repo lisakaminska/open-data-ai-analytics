@@ -1,0 +1,94 @@
+name: mvc-analytics
+
+networks:
+  analytics-net:
+    driver: bridge
+
+volumes:
+  db-data:
+  reports-data:
+  plots-data:
+
+services:
+
+  data_load:
+    build: ./data_load
+    container_name: mvc_data_load
+    environment:
+      - CSV_PATH=/data/dataset.csv
+      - DB_PATH=/db/analytics.db
+    volumes:
+      - ./data:/data:ro
+      - db-data:/db
+    networks:
+      - analytics-net
+    restart: "no"
+
+  data_quality_analysis:
+    build: ./data_quality_analysis
+    container_name: mvc_data_quality
+    environment:
+      - DB_PATH=/db/analytics.db
+      - REPORTS_PATH=/reports
+    volumes:
+      - db-data:/db
+      - reports-data:/reports
+    networks:
+      - analytics-net
+    depends_on:
+      - data_load
+    restart: "no"
+
+  data_research:
+    build: ./data_research
+    container_name: mvc_data_research
+    environment:
+      - DB_PATH=/db/analytics.db
+      - REPORTS_PATH=/reports
+    volumes:
+      - db-data:/db
+      - reports-data:/reports
+    networks:
+      - analytics-net
+    depends_on:
+      - data_load
+    restart: "no"
+
+  visualization:
+    build: ./visualization
+    container_name: mvc_visualization
+    environment:
+      - DB_PATH=/db/analytics.db
+      - PLOTS_PATH=/plots
+    volumes:
+      - db-data:/db
+      - plots-data:/plots
+    networks:
+      - analytics-net
+    depends_on:
+      - data_load
+    restart: "no"
+
+  web:
+    build: ./web
+    container_name: mvc_web
+    environment:
+      - DB_PATH=/db/analytics.db
+      - PLOTS_PATH=/plots
+    volumes:
+      - db-data:/db
+      - plots-data:/plots
+      - reports-data:/reports
+    networks:
+      - analytics-net
+    ports:
+      - "5000:5000"
+    depends_on:
+      - data_load
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/healthz')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

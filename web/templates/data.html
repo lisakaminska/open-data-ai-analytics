@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h1>📋 Завантажені дані</h1>
+    <p style="color:#555; margin-bottom:16px;">Перші 50 записів з таблиці <code>persons</code> (SQLite)</p>
+    <div style="overflow-x:auto;">
+    <table>
+        <tr>
+            <th>ID</th><th>Прізвище</th><th>Ім'я</th><th>По батькові</th>
+            <th>Дата нар.</th><th>Формат</th><th>Width</th><th>Height</th>
+            <th>Size KB</th><th>Aspect Ratio</th><th>Пікселі</th>
+        </tr>
+        {% for row in rows %}
+        <tr>
+            <td>{{ row['id'] }}</td>
+            <td>{{ row['last_name'] }}</td>
+            <td>{{ row['first_name'] }}</td>
+            <td>{{ row['middle_name'] or '—' }}</td>
+            <td>{{ row['birth_date'] or '—' }}</td>
+            <td><span class="badge badge-ok">{{ row['format'] }}</span></td>
+            <td>{{ row['width'] }}</td>
+            <td>{{ row['height'] }}</td>
+            <td>{{ row['size_kb'] }}</td>
+            <td>{{ row['aspect_ratio'] }}</td>
+            <td>{{ row['pixels'] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    </div>
+</div>
+{% endblock %}

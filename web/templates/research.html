@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h1>Результати дослідження даних</h1>
+
+    {% if report.get('error') %}
+    <div class="alert alert-warn">Модуль research ще не виконано: {{ report['error'] }}</div>
+    {% else %}
+
+    <div class="stat-grid" style="margin-bottom:24px;">
+        <div class="stat-box">
+            <div class="num">{{ report.get('total_records', '—') }}</div>
+            <div class="lbl">Всього записів</div>
+        </div>
+        <div class="stat-box">
+            <div class="num">{{ report.get('ai_readiness', {}).get('ai_ready_pct', '—') }}%</div>
+            <div class="lbl">Придатні для AI</div>
+        </div>
+        <div class="stat-box">
+            <div class="num">{{ report.get('resolution_analysis', {}).get('low_res_pct', '—') }}%</div>
+            <div class="lbl">Низька роздільність</div>
+        </div>
+        <div class="stat-box">
+            <div class="num">{{ report.get('aspect_ratio_analysis', {}).get('portrait_34_pct', '—') }}%</div>
+            <div class="lbl">Формат 3:4</div>
+        </div>
+    </div>
+
+    <h2>Аналіз роздільної здатності</h2>
+    <table style="margin-bottom:20px;">
+        <tr><th>Показник</th><th>Значення</th></tr>
+        {% for k, v in report.get('resolution_analysis', {}).items() %}
+        <tr><td>{{ k }}</td><td>{{ v }}</td></tr>
+        {% endfor %}
+    </table>
+
+    <h2>Аналіз розміру файлів (KB)</h2>
+    <table style="margin-bottom:20px;">
+        <tr><th>Показник</th><th>Значення</th></tr>
+        {% for k, v in report.get('file_size_analysis', {}).items() %}
+        <tr><td>{{ k }}</td><td>{{ v }}</td></tr>
+        {% endfor %}
+    </table>
+
+    <h2>Топ-5 найбільших фото</h2>
+    <table>
+        <tr><th>ID</th><th>Пікселі</th><th>Width</th><th>Height</th><th>Формат</th></tr>
+        {% for item in report.get('top5_largest', []) %}
+        <tr>
+            <td>{{ item.id }}</td>
+            <td>{{ item.pixels }}</td>
+            <td>{{ item.width }}</td>
+            <td>{{ item.height }}</td>
+            <td><span class="badge badge-ok">{{ item.format }}</span></td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    {% endif %}
+</div>
+{% endblock %}

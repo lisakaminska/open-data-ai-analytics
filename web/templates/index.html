@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h1>Аналіз відкритих даних МВС України</h1>
+    <p style="color:#555; margin-bottom:20px; line-height:1.6;">
+        Проєкт аналізує відкритий датасет <strong>«Особи, які переховуються від органів влади»</strong>
+        з <a href="https://data.gov.ua/dataset/59ecf2ab-47a1-4fae-a63c-fe5007d68130" target="_blank">data.gov.ua</a>.
+        Виконується технічний аналіз якості зображень та їх придатності для систем розпізнавання облич (Computer Vision).
+    </p>
+
+    {% if db_ready %}
+    <div class="alert alert-info">База даних готова — всі модулі успішно виконані.</div>
+    {% else %}
+    <div class="alert alert-warn">База даних ще формується. Запустіть <code>docker compose up --build</code> і зачекайте.</div>
+    {% endif %}
+
+    <div class="stat-grid">
+        <div class="stat-box"><div class="num">4</div><div class="lbl">Аналітичних сервіси</div></div>
+        <div class="stat-box"><div class="num">SQLite</div><div class="lbl">База даних</div></div>
+        <div class="stat-box"><div class="num">Docker</div><div class="lbl">Контейнеризація</div></div>
+        <div class="stat-box"><div class="num">Flask</div><div class="lbl">Веб-інтерфейс</div></div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Гіпотези дослідження</h2>
+    <ul style="padding-left:20px; line-height:2;">
+        <li><strong>Стандартизація:</strong> більшість фото відповідають портретному формату 3:4 (aspect ratio = 0.75)</li>
+        <li><strong>Якість:</strong> ~14.5% зображень мають роздільну здатність нижче 200px — «сліпа зона» для AI</li>
+        <li><strong>Формат:</strong> JPEG домінує завдяки оптимальному стисненню</li>
+    </ul>
+</div>
+
+<div class="card">
+    <h2>Архітектура сервісів</h2>
+    <table>
+        <tr><th>Сервіс</th><th>Опис</th><th>Порт</th></tr>
+        <tr><td>data_load</td><td>Завантажує CSV у SQLite БД</td><td>—</td></tr>
+        <tr><td>data_quality_analysis</td><td>Перевіряє якість, дублікати, типи</td><td>—</td></tr>
+        <tr><td>data_research</td><td>Статистичний аналіз датасету</td><td>—</td></tr>
+        <tr><td>visualization</td><td>Генерує графіки PNG</td><td>—</td></tr>
+        <tr><td>web</td><td>Веб-інтерфейс результатів</td><td>5000</td></tr>
+    </table>
+</div>
+{% endblock %}

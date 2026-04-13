@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>МВС Аналітика</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #333; }
+        nav {
+            background: #1a237e; color: white; padding: 0 24px;
+            display: flex; align-items: center; gap: 32px; height: 56px;
+        }
+        nav .brand { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
+        nav a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 14px; padding: 6px 12px; border-radius: 4px; transition: background 0.2s; }
+        nav a:hover { background: rgba(255,255,255,0.15); color: white; }
+        .container { max-width: 1200px; margin: 32px auto; padding: 0 24px; }
+        .card { background: white; border-radius: 10px; padding: 28px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+        h1 { font-size: 24px; margin-bottom: 16px; color: #1a237e; }
+        h2 { font-size: 18px; margin-bottom: 12px; color: #283593; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { background: #e8eaf6; color: #1a237e; padding: 10px 12px; text-align: left; font-weight: 600; }
+        td { padding: 9px 12px; border-bottom: 1px solid #f0f0f0; }
+        tr:hover td { background: #f5f5ff; }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .badge-ok { background: #e8f5e9; color: #2e7d32; }
+        .badge-warn { background: #fff3e0; color: #e65100; }
+        .badge-err { background: #ffebee; color: #c62828; }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+        .stat-box { background: #e8eaf6; border-radius: 8px; padding: 18px 20px; text-align: center; }
+        .stat-box .num { font-size: 28px; font-weight: 700; color: #1a237e; }
+        .stat-box .lbl { font-size: 12px; color: #666; margin-top: 4px; }
+        img.plot { max-width: 100%; border-radius: 8px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .alert { padding: 14px 18px; border-radius: 8px; margin-bottom: 16px; }
+        .alert-info { background: #e3f2fd; color: #0d47a1; border-left: 4px solid #1976d2; }
+        .alert-warn { background: #fff8e1; color: #e65100; border-left: 4px solid #ffa000; }
+    </style>
+</head>
+<body>
+<nav>
+    <span class="brand">МВС Аналітика</span>
+    <a href="/">Головна</a>
+    <a href="/data">Дані</a>
+    <a href="/quality">Якість</a>
+    <a href="/research">Дослідження</a>
+    <a href="/visualizations">Візуалізації</a>
+</nav>
+<div class="container">
+{% block content %}{% endblock %}
+</div>
+</body>
+</html>

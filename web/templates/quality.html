@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h1>Результати перевірки якості даних</h1>
+
+    {% if report.get('error') %}
+    <div class="alert alert-warn">Модуль quality ще не виконано: {{ report['error'] }}</div>
+    {% else %}
+
+    <div class="stat-grid" style="margin-bottom:24px;">
+        <div class="stat-box">
+            <div class="num">{{ report.get('total_records', '—') }}</div>
+            <div class="lbl">Всього записів</div>
+        </div>
+        <div class="stat-box">
+            <div class="num">{{ report.get('duplicates', {}).get('by_id', '—') }}</div>
+            <div class="lbl">Дублікатів по ID</div>
+        </div>
+        <div class="stat-box">
+            <div class="num">{{ report.get('value_checks', {}).get('low_resolution_count', '—') }}</div>
+            <div class="lbl">Фото з низькою роздільністю</div>
+        </div>
+        <div class="stat-box">
+            <div class="num">{{ report.get('value_checks', {}).get('low_resolution_pct', '—') }}%</div>
+            <div class="lbl">% низької роздільності</div>
+        </div>
+    </div>
+
+    <h2>Пропущені значення</h2>
+    <table style="margin-bottom:20px;">
+        <tr><th>Поле</th><th>Кількість пропусків</th><th>Статус</th></tr>
+        {% for col, cnt in report.get('missing_values', {}).items() %}
+        <tr>
+            <td>{{ col }}</td>
+            <td>{{ cnt }}</td>
+            <td>
+                {% if cnt == 0 %}
+                    <span class="badge badge-ok">✓ OK</span>
+                {% elif cnt < 5 %}
+                    <span class="badge badge-warn">⚠ Незначні</span>
+                {% else %}
+                    <span class="badge badge-err">✗ Критично</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Перевірка типів</h2>
+    <table style="margin-bottom:20px;">
+        <tr><th>Перевірка</th><th>Результат</th></tr>
+        {% for check, result in report.get('type_checks', {}).items() %}
+        <tr>
+            <td>{{ check }}</td>
+            <td>
+                {% if result %}
+                    <span class="badge badge-ok">✓ Пройдено</span>
+                {% else %}
+                    <span class="badge badge-err">✗ Помилка</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Розподіл форматів</h2>
+    <table>
+        <tr><th>Формат</th><th>Кількість</th></tr>
+        {% for fmt, cnt in report.get('value_checks', {}).get('known_formats', {}).items() %}
+        <tr>
+            <td><span class="badge badge-ok">{{ fmt }}</span></td>
+            <td>{{ cnt }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    {% endif %}
+</div>
+{% endblock %}
