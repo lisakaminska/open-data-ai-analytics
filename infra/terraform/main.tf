@@ -131,7 +131,7 @@ resource "azurerm_linux_virtual_machine" "main" {
   name                = var.vm_name
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
-  size                = "Standard_B1s"
+  size                = var.vm_size
   admin_username      = var.admin_username
 
   custom_data = base64encode(file("${path.module}/cloud-init.yaml"))
