@@ -19,4 +19,5 @@ runcmd:
   - systemctl enable docker
   - systemctl start docker
   - git clone https://github.com/lisakaminska/open-data-ai-analytics /app
-  - cd /app && docker compose up -d
+  - mkdir -p /app/web/static
+  - cd /app && docker compose up -d --build
