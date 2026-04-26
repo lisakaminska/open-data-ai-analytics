@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mvc-web
+  namespace: mvc-analytics
+  labels:
+    app: mvc-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mvc-web
+  template:
+    metadata:
+      labels:
+        app: mvc-web
+    spec:
+      containers:
+        - name: mvc-web
+          image: python:3.11-slim
+          command: ["python", "-c", "
+import http.server, socketserver
+class H(http.server.SimpleHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b'MVC Analytics - GitOps v1.0')
+httpd = socketserver.TCPServer(('', 5000), H)
+httpd.serve_forever()
+"]
+          ports:
+            - containerPort: 5000
+          env:
+            - name: APP_VERSION
+              value: "v1.0"

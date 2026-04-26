@@ -9,15 +9,35 @@ packages:
   - gnupg
   - git
 
+write_files:
+  - path: /tmp/application.yaml
+    content: |
+      apiVersion: argoproj.io/v1alpha1
+      kind: Application
+      metadata:
+        name: mvc-analytics
+        namespace: argocd
+      spec:
+        project: default
+        source:
+          repoURL: https://github.com/lisakaminska/open-data-ai-analytics
+          targetRevision: main
+          path: gitops/app
+        destination:
+          server: https://kubernetes.default.svc
+          namespace: mvc-analytics
+        syncPolicy:
+          automated:
+            prune: true
+            selfHeal: true
+
 runcmd:
-  - install -m 0755 -d /etc/apt/keyrings
-  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-  - chmod a+r /etc/apt/keyrings/docker.asc
-  - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" > /etc/apt/sources.list.d/docker.list
-  - apt-get update -qq
-  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-  - systemctl enable docker
-  - systemctl start docker
-  - git clone https://github.com/lisakaminska/open-data-ai-analytics /app
-  - mkdir -p /app/web/static
-  - nohup bash -c 'cd /app && docker compose up -d --build > /var/log/app-startup.log 2>&1' &
+  - curl -sfL https://get.k3s.io | sh -
+  - systemctl enable k3s
+  - systemctl start k3s
+  - until kubectl get nodes 2>/dev/null | grep -q Ready; do sleep 5; done
+  - kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
+  - kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+  - until kubectl get pods -n argocd 2>/dev/null | grep argocd-server | grep -q Running; do sleep 10; done
+  - kubectl patch svc argocd-server -n argocd -p '{"spec":{"type":"NodePort","ports":[{"port":443,"targetPort":8080,"nodePort":30080,"name":"https"}]}}'
+  - kubectl apply -f /tmp/application.yaml

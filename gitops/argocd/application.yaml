@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mvc-analytics
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/lisakaminska/open-data-ai-analytics
+    targetRevision: main
+    path: gitops/app
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mvc-analytics
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
