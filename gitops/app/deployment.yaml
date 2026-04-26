@@ -27,7 +27,7 @@ spec:
                   def do_GET(self):
                       self.send_response(200)
                       self.end_headers()
-                      self.wfile.write(b'MVC Analytics - GitOps v2.0(changed)')
+                      self.wfile.write(b'MVC Analytics - GitOps v1.0')
                       return
               httpd = socketserver.TCPServer(('', 5000), H)
               httpd.serve_forever()
@@ -35,4 +35,4 @@ spec:
             - containerPort: 5000
           env:
             - name: APP_VERSION
-              value: "v2.0"
+              value: "v1.0"
